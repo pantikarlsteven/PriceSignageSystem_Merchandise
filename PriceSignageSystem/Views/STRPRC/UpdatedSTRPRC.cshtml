@@ -1,0 +1,794 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>PCA</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.3/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+
+    <style>
+        td.details-control {
+            text-align: center;
+            color: #6396fd;
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            text-align: center;
+            color: #fd6363;
+        }
+
+        th.no-sort::after {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <iframe id="reportIframe" src="" style="display: none;"></iframe> @*For printing preview*@
+
+    <div class="content-wrapper bg-white px-3">
+        <br />
+        <div class="content">
+            <div class="overlay-wrapper" id="loadingContainer" style="display: none;">
+                <div class="overlay" style="background-color: rgba(0, 0, 0, 0.59); z-index: 999999;">
+                    <img class="" src="~/Content/Images/loading.gif" alt="Loading" style="max-width:350px;" />
+                </div>
+            </div>
+        </div>
+        <center>
+            @if (TempData["RegistrationSuccessMessage"] != null)
+            {
+            <div class="modal" tabindex="-1" role="dialog" id="registrationSuccessModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Registration Success</h5>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-success">
+                                @TempData["RegistrationSuccessMessage"]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            }
+
+            @*@if (ViewBag.IsDateLatest == true)
+                {
+                    <div class="alert alert-success">
+                        <i class="fa fa-check-circle"></i>  The current data is as of <u>@ViewBag.DateVersion</u>
+                        <a id="updateButton" href="#" class="ml-2 mt-2 btn btn-secondary text-bold btn-sm">
+                            Update
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i> The current data is as of <u>@ViewBag.DateVersion</u>
+                        <a id="updateButton" href="#" class="ml-2 mt-2 btn btn-secondary text-bold btn-sm">
+                            Update
+                        </a>
+                    </div>
+                }*@
+
+        </center>
+        <br />
+        <div class="row">
+            <div class="card elevation-3 px-0 ">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs bg-primary1 px-2 pt-2">
+                    <li class="nav-item">
+                        <a class="nav-link active" style="color:white;" data-toggle="tab" href="#" id="withInventory">With Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color:white;" data-toggle="tab" href="#" id="withoutInventory">Without Inventory</a>
+                    </li>
+                </ul>
+
+                <div class="card-body table-responsive">
+                    <table id="dataTable" class="table table-sm table-hover" style="width: 100%">
+                        <thead style="background-color: #1C3766;" class="text-white">
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" /></th>
+                                <th></th>
+                                <th>Printed?</th>
+                                <th>SKU</th>
+                                <th style="width: 200px;" class="text-nowrap">Description</th>
+                                <th>Changed On</th>
+                                <th>Dept <i class="filter-icon bi bi-funnel-fill"></i></th>
+                                <th>Last Updated</th>
+                                <th><button class="printAllBtn btn btn-secondary px-3" style="float: right;">Print Selected</button></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="15" style="text-align: center;">No data available in the table</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                @*<table id="dataTable" class="display nowrap" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" /></th>
+                                <th></th>
+                                <th>Printed?</th>
+                                <th>SKU</th>
+                                <th style="width: 200px;" class="text-nowrap">Description</th>
+                                <th>Changed On</th>
+                                <th>Dept <i class="filter-icon bi bi-funnel-fill"></i></th>
+                                <th>Last Updated</th>
+                                <th><button class="printAllBtn btn btn-secondary px-3" style="float: right;">Print Selected</button></th>
+                            </tr>
+                        </thead>
+                    </table>*@
+            </div>
+        </div>
+    </div>
+    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+</body>
+</html>
+
+<script>
+        //var $j = jQuery.noConflict();
+
+    $(document).ready(function () {
+        //
+        InitLoad();
+        $('#registrationSuccessModal').modal('show');
+        setTimeout(function () {
+            $('#registrationSuccessModal').modal('hide');
+            setTimeout(function () {
+                $('#registrationSuccessModal').remove();
+            }, 500); // Delay removing the modal for 500 milliseconds after hiding
+        }, 2000); // 2000 milliseconds = 2 seconds
+        //
+
+        $("#updateButton").click(function () {
+            $("#loadingContainer").show();
+
+            $.ajax({
+                url: "/STRPRC/UpdateSTRPRCData",
+                type: "POST",
+                success: function (response) {
+
+                    window.location.href = "/STRPRC/UpdatedSTRPRC";
+                },
+                error: function (error) {
+
+                    $("#loadingContainer").hide();
+                }
+            });
+
+            return false;
+        });
+
+        $("#startDate").datepicker({
+            dateFormat: 'yy-mm-dd'
+        });
+
+        var table = null;
+        var data = null;
+        // Create dialog element for the filter input
+        var dialog = $('<div>').dialog({
+            autoOpen: false,
+            modal: true,
+            resizable: false,
+            width: 300, // Increased width size
+            position: { my: 'left top', at: 'left bottom', of: '.filter-icon' },
+            open: function (event, ui) {
+                $('.ui-widget-overlay').bind('click', function () {
+                    dialog.dialog('close');
+                });
+            },
+            close: function (event, ui) {
+                $('.ui-widget-overlay').unbind('click');
+            }
+        });
+
+        // Handle filter icon click
+        $('thead').on('click', '.filter-icon', function (event) {
+            event.stopPropagation(); // Prevent event propagation
+
+            var columnIndex = $(this).closest('th').index();
+            var column = table.column(columnIndex);
+
+            // Clear existing filter input
+            dialog.dialog('option', 'title', 'Filter Dept').html('');
+
+            // Get distinct values of the column
+            var distinctValues = column.data().unique().sort().toArray();
+
+            // Retrieve previously selected values (if any)
+
+            var selectedValues = column.search().split('|').map(function (value) {
+                return value.trim();
+            });
+
+            if (selectedValues.length > 0) {
+                selectedValues[0] = selectedValues[0].replace(/^\^\(/, '');
+                var lastIndex = selectedValues.length - 1;
+                selectedValues[lastIndex] = selectedValues[lastIndex].replace(/\)\$$/, '');
+            }
+
+
+            // Create checkboxes for each distinct value
+            var scrollableDiv = $('<div>').css({
+                'max-height': '200px', // Set a maximum height for scrolling
+                'overflow-y': 'scroll' // Enable vertical scrolling
+            });
+
+            var checkboxContainer = $('<div>').css({
+                'display': 'flex',
+                'flex-direction': 'column', // Align checkboxes vertically
+                'gap': '5px' // Add spacing between checkboxes
+            });
+
+            // Add "Select All" checkbox
+            var selectAllCheckbox = $('<input type="checkbox">').addClass('filter-checkbox select-all-checkbox');
+            var selectAllLabel = $('<label>').text('Select All').prepend(selectAllCheckbox);
+            checkboxContainer.prepend(selectAllLabel);
+
+            for (var i = 0; i < distinctValues.length; i++) {
+                var checkbox = $('<input type="checkbox">').addClass('filter-checkbox').val(distinctValues[i]);
+                if (selectedValues.includes(distinctValues[i])) {
+                    checkbox.prop('checked', true);
+                }
+                var label = $('<label>').text(distinctValues[i]).prepend(checkbox);
+                checkboxContainer.append(label);
+            }
+
+            scrollableDiv.append(checkboxContainer);
+            dialog.append(scrollableDiv);
+
+            // Create button container for the "OK" and "Clear All Checkboxes" buttons
+            var buttonContainer = $('<div>').css('display', 'flex');
+            dialog.append(buttonContainer);
+
+            // Create "Clear All Checkboxes" button
+            var clearButton = $('<button>').text('Clear All').addClass('btn btn-secondary btn-sm').css('background-color', 'gray').click(function () {
+                $('.filter-checkbox').prop('checked', false);
+                applyFilter();
+            });
+            buttonContainer.append(clearButton);
+
+            // Create "OK" button
+            var okButton = $('<button>').text('OK').addClass('btn btn-secondary btn-sm ml-2').css('background-color', 'orange').click(function () {
+                applyFilter();
+                dialog.dialog('close');
+            });
+            buttonContainer.append(okButton);
+
+            // Apply filter when checkbox state changes
+            $('.filter-checkbox').on('change', applyFilter);
+
+            // Toggle state of all checkboxes when "Select All" checkbox changes
+            selectAllCheckbox.click(function () {
+                $('.filter-checkbox').not('.select-all-checkbox').prop('checked', $(this).prop('checked'));
+            });
+
+            // Open the filter dialog
+            dialog.dialog('open');
+
+            // Adjust dialog position on resize
+            $(window).on('resize', function () {
+                dialog.dialog('option', 'position', { my: 'left top', at: 'left bottom', of: '.filter-icon' });
+            });
+
+            function applyFilter() {
+                var selectedValues = $('.filter-checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selectedValues.length === 0) {
+                    column.search('').draw();
+                } else {
+                    // Use a regular expression to match exact values
+                    var regex = '^(' + selectedValues.map(function (value) {
+                        return $.fn.dataTable.util.escapeRegex(value);
+                    }).join('|') + ')$';
+
+                    column.search(regex, true, false).draw();
+                }
+            }
+        });
+
+        function GetDataTable(data) {
+            if (data.IsAuthenticated == false)
+                window.location.href = data.RedirectUrl;
+            else {
+                if (table !== null) {
+                    table.destroy();
+                }
+                // DATATABLE
+                table = $('#dataTable').DataTable({
+                    data: data,
+                    deferRender: true,
+                    scrollCollapse: true,
+                    scroller: true,
+                    scrollY: 500,
+                    scrollX: true,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        [10, 25, 50, 'All']
+                    ],
+                    pageLength: -1,
+                    columns: [
+                        {
+                            data: null, orderable: false, searchable: false, render: function (data) {
+                                return '<input type="checkbox" class="rowCheckbox" data-id="' + data.O3SKU + '">';
+                            }
+                        },
+                        {
+                            "className": 'details-control',
+                            "orderable": false,
+                            "data": null,
+                            "defaultContent": '',
+                            "render": function () {
+                                return '<i class="fa-solid fa-square-caret-down"></i>';
+                            },
+                            width: "15px"
+                        },
+                        {
+                            data: 'IsPrinted', name: 'IsPrinted', render: function (data) {
+                                if (data === 'Yes') {
+                                    return '<span style="color: green;">' + data + '</span>';
+                                } else {
+                                    return '<span style="color: red;">' + data + '</span>';
+                                }
+                            }
+                        },
+                        { data: 'O3SKU', name: 'O3SKU' },
+                        { data: 'O3IDSC', name: 'O3IDSC', className: 'text-nowrap' },
+                        { data: 'ColumnName', name: 'ColumnName' },
+                        { data: 'DepartmentName', name: 'DepartmentName' },
+                        { data: 'DateUpdated', name: 'DateUpdated' },
+                        {
+                            data: null,
+                            render: function (data, type, row) {
+                                return '<button style="float:right;" class="printBtn btn btn-primary btn-sm" data-id="' + data.O3SKU + '">Print</button>';
+                            }
+                        }
+                    ],
+                });
+
+                //if (data.filter(row => row.Inv == 'Y').length == 0) {
+                //    table.column(2).visible(false);
+                //    table.column(8).visible(false);
+                //}
+
+                if ('@User.IsInRole("Merchandiser")' == 'True' ) {
+                        // DISABLED BUTTONS IF ROLE = MERCHANDISER
+                        var buttonsprintAll = document.querySelectorAll(".printAllBtn");
+                                buttonsprintAll.forEach(function (button) {
+                                    button.disabled = true;
+                                });
+
+                        var buttonsEachRow = document.querySelectorAll('.printBtn');
+                                buttonsEachRow.forEach(function (button) {
+                                    button.disabled = true;
+                                });
+                                //
+                 }
+
+            }
+        }
+
+        $("#withInventory").click(function () {
+            GetDataTable(data.filter(row => row.Inv == 'Y'));
+
+        });
+
+        $("#withoutInventory").click(function () {
+            GetDataTable(data.filter(row => row.Inv == 'N'));
+        });
+
+        function InitLoad() {
+            $("#loadingContainer").show();
+            $.ajax({
+                url: '@Url.Action("GetUpdatedData", "STRPRC")',
+                type: 'GET',
+                dataType: 'json',
+                beforeSend: function (xhr) {
+                    // Add the 'Accept-Encoding' header to let the server know that we can handle Gzip compression
+                    xhr.setRequestHeader('Accept-Encoding', 'gzip');
+                },
+                success: function (myData) {
+                    data = myData;
+                    $("#loadingContainer").hide();
+
+                    for (var i = 0; i < data.length; i++) {
+
+                        var dateString = data[i].DateUpdated;
+                        var formattedDate = moment(dateString).format("MMMM DD, YYYY");
+                        data[i].DateUpdated = formattedDate;
+                    }
+
+                    GetDataTable(data.filter(row => row.Inv == 'Y'));
+
+                    $('#selectAll').on('change', function () {
+                        var isChecked = $(this).is(':checked');
+                        $('.rowCheckbox').prop('checked', isChecked);
+                    });
+
+                    $('.printAllBtn').on('click', function () {
+
+                        var selectedRows = [];
+                        $('.rowCheckbox:checked').each(function () {
+                            var rowId = $(this).data('id');
+                            selectedRows.push(rowId);
+                        });
+
+                        if (selectedRows.length > 0) {
+                            console.log('Selected Row IDs:', selectedRows);
+
+                            // Build the HTML for the dropdowns
+                            var dropdownHtml = '<div class="form-row">' +
+                                '<div class="form-group row col-12">' +
+                                '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                                '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown">' +
+                                '<option value="1">Whole</option>' +
+                                '<option value="2">1/8</option>' +
+                                '<option value="3">Jewelry</option>' +
+                                '</select>' +
+                                '</div>' +
+                                '</div>';
+                            // Build the HTML for the print button
+                            var buttonHtml = '<button id="printSelectedButton" class="btn btn-primary">Print</button>' +
+                                '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+
+                            // Create the modal content
+                            var modalContent = '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+                                '<div class="modal-content">' +
+                                '<div class="modal-header">' +
+                                '<h5 class="modal-title">Print Report</h5>' +
+                                '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                                '<span aria-hidden="true">&times;</span>' +
+                                '</button>' +
+                                '</div>' +
+                                '<div class="modal-body">' +
+                                dropdownHtml +
+                                '</div>' +
+                                '<div class="modal-footer">' +
+                                buttonHtml +
+                                '</div>' +
+                                '</div>' +
+                                '</div>';
+                            // Remove any existing modals
+                            $('#modalView').remove();
+
+                            // Append the modal to the body
+                            $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                            // Show the modal with fade-in effect from top
+                            $('#modalView').modal({
+                                show: true,
+                                backdrop: false,
+                                keyboard: false
+                            });
+
+
+                            //Start for print preview multiple report
+                            // PRINT MULTIPLE
+                            $('#printSelectedButton').click(function () {
+                                $("#loadingContainer").show();
+                                var sizeId = $('#sizeDropdown').val();
+
+                                $("#reportIframe").attr("src", "/Report/PrintPreviewMultipleReport?selectedIds=" + selectedRows + "&sizeId=" + sizeId + "");
+
+                                var reportIframe = document.getElementById("reportIframe");
+                                if (reportIframe) {
+                                    $('.rowCheckbox:checked').each(function () {
+                                        var rowId = $(this).data('id');
+                                        selectedRows.push(rowId);
+                                        var row = $(this).closest('tr');
+                                        var table = row.closest('table');
+                                        var rowIndex = table.DataTable().row(row).index();
+                                        var specificRow = $('#dataTable tbody tr:eq(' + rowIndex + ')');
+                                        specificRow.find('td:eq(2)').text("Yes");
+                                        specificRow.find('td:eq(2)').css('color', 'green');
+                                    });
+                                    reportIframe.onload = function () {
+                                        reportIframe.contentWindow.print();
+                                        $("#loadingContainer").hide();
+                                    };
+                                    reportIframe.src = $("#reportIframe").attr("src");
+                                }
+                                $('#modalView').modal('hide');
+                                $('input[type="checkbox"]').prop('checked', false);
+
+                                //var url = "/Report/PrintPreviewMultipleReport?selectedIds=" + encodeURIComponent(selectedRows.join(',')) + "&sizeId=" + sizeId + "";
+                                //$.ajax({
+                                //    url: url,
+                                //    type: 'GET',
+                                //    data: { selectedIds: selectedRows, sizeId: sizeId},
+                                //    success: function (data) {
+                                //        if (!data)
+                                //            alert("Error in printing.");
+                                //        else {
+                                //            $('.rowCheckbox:checked').each(function () {
+                                //                var row = $(this).closest('tr');
+                                //                var table = row.closest('table');
+                                //                var rowIndex = table.DataTable().row(row).index();
+                                //                var specificRow = $('#dataTable tbody tr:eq(' + rowIndex + ')');
+                                //                specificRow.find('td:eq(2)').text("Yes");
+                                //                specificRow.find('td:eq(2)').css('color', 'green');
+
+                                //            });
+                                //        }
+
+                                //        $("#loadingContainer").hide();
+                                //        $('#modalView').modal('hide');
+                                //        $('input[type="checkbox"]').prop('checked', false);
+                                //    }
+                                //});
+
+                            });
+                            //End for print preview multiple report
+
+                        } else {
+                            alert('Please select items to print.');
+                        }
+                    });
+
+                    // Add event listener for opening and closing details
+                    $('#dataTable tbody').on('click', 'td.details-control', function () {
+
+                        var tr = $(this).closest('tr');
+                        var tdi = tr.find("i.fa-solid");
+                        var row = table.row(tr);
+
+                        if (row.child.isShown()) {
+                            // This row is already open - close it
+                            row.child.hide();
+                            tr.removeClass('shown');
+                            tdi.first().removeClass('fa-solid fa-square-caret-up');
+                            tdi.first().addClass('fa-solid fa-square-caret-down');
+                        }
+                        else {
+                            // Open this row
+                            row.child(format(row.data())).show();
+                            tr.addClass('shown');
+                            tdi.first().removeClass('fa-solid fa-square-caret-down');
+                            tdi.first().addClass('fa-solid fa-square-caret-up');
+                        }
+                    });
+                }
+            });
+        }
+
+
+            //PRINT BUTTON
+        $('#dataTable').on('click', '.printBtn', function () {
+                var rowId = $(this).data('id');
+
+                var row = $(this).closest('tr');
+                var table = row.closest('table');
+                var rowIndex = table.DataTable().row(row).index();
+
+                $.ajax({
+                    url: '@Url.Action("GetDataBySKU", "STRPRC")' ,
+                    type: 'POST',
+                    data: { id: rowId },
+                    success: function (response) {
+
+                        // Create the dropdown options
+                        var sizeOptions = '';
+                        var typeOptions = '';
+                        var categoryOptions = '';
+
+                        // Populate dropdown options from the server response
+                        for (var i = 0; i < response.SizeArray.length; i++) {
+                            var option = response.SizeArray[i];
+                            sizeOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+                        for (var i = 0; i < response.TypeArray.length; i++) {
+                            var option = response.TypeArray[i];
+                            typeOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+                        for (var i = 0; i < response.CategoryArray.length; i++) {
+                            var option = response.CategoryArray[i];
+                            categoryOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+
+                        // Build the HTML for the dropdowns
+                        var dropdownHtml = '<div class="form-row">' +
+                            '<div class="form-group row col-12">' +
+                            '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown" >' +
+                            sizeOptions +
+                            '</select>' +
+                            '</div>' +
+                            '<div class="form-group row col-md-12">' +
+                            '<label class="col-sm-2 col-form-label" for="typeDropdown">Type:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="typeDropdown" disabled>' +
+                            typeOptions +
+                            '</select>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="form-row">' +
+                            '<div class="form-group row col-md-12">' +
+                            '<label class="col-sm-2 col-form-label" for="categoryDropdown">Category:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="categoryDropdown" disabled>' +
+                            categoryOptions +
+                            '</select>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Build the HTML for the print button
+                        var buttonHtml = '<button id="printButton" class="btn btn-primary">Print</button>' +
+                            '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+
+                        // Create the modal content
+                        var modalContent = '<div class="modal-dialog modal-dialog-centered">' +
+                            '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                            '<h5 class="modal-title">Print Report</h5>' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                            dropdownHtml +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                            buttonHtml +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Remove any existing modals
+                        $('#modalView').remove();
+
+                        // Append the modal to the body
+                        $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                        // Show the modal with fade-in effect from top
+                        $('#modalView').modal({
+                            show: true,
+                            backdrop: false,
+                            keyboard: false
+                        });
+
+                        // Set default values for the dropdowns
+                        $('#sizeDropdown').val(response.SizeId);
+                        $('#typeDropdown').val(response.TypeId);
+                        $('#categoryDropdown').val(response.CategoryId);
+
+                        //Start for print preview single report
+                        // Print button click event handler
+                        $('#printButton').click(function () {
+                            $("#loadingContainer").show();
+
+                            response.SizeId = $('#sizeDropdown').val();
+                            response.TypeId = $('#typeDropdown').val();
+                            response.CategoryId = $('#categoryDropdown').val();
+                            response.O3IDSC = "";
+                            response.O3LONG = "";
+                            response.O3FNAM = "";
+                            response.O3MODL = "";
+
+                            $("#reportIframe").attr("src", "/Report/PrintPreviewSingleReport?response=" + JSON.stringify(response));
+                            var reportIframe = document.getElementById("reportIframe");
+                            if (reportIframe) {
+                                reportIframe.onload = function () {
+                                    reportIframe.contentWindow.print();
+                                    $("#loadingContainer").hide();
+                                    var specificRow = $('#dataTable tbody tr:eq(' + rowIndex + ')');
+                                    specificRow.find('td:eq(2)').text("Yes");
+                                    specificRow.find('td:eq(2)').css('color', 'green');
+                                };
+                                reportIframe.src = $("#reportIframe").attr("src");
+                            }
+
+                            $('#modalView').modal('hide');
+
+                            @*$.ajax({
+                                url: '@Url.Action("PrintPreviewSingleReport", "Report")',
+                                type: 'GET',
+                                data: { response: JSON.stringify(response)},
+                                success: function (data) {
+                                    if (!data)
+                                        alert("Error in printing.");
+                                    else {
+                                        var specificRow = $('#dataTable tbody tr:eq(' + rowIndex + ')');
+                                        specificRow.find('td:eq(2)').text("Yes");
+                                        specificRow.find('td:eq(2)').css('color', 'green');
+                                    }
+
+                                    $("#loadingContainer").hide();
+                                    $('#modalView').modal('hide');
+                                }
+                            });*@
+
+                        });
+                        //End for print preview single report
+                    }
+                });
+            });
+
+            // Close the modal when the modal close button is clicked
+            $(document).on('click', '.modal .close', function () {
+                $('#modalView').modal('hide');
+            });
+
+            // Remove the modal from the DOM when it is hidden
+            $(document).on('hidden.bs.modal', '.modal', function () {
+                $(this).remove();
+            });
+
+    });
+
+    function format(d) {
+            // `d` is the original data object for the row
+            return '<div class="row">' +
+                '<div class="col-6">' +
+                '<form>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Brand:</label>' +
+                '       <span>' + d.O3FNAM + '</span>' +
+                '   </div>' +
+                '  <div class="form-group col">' +
+                '       <label>Model:</label>' +
+                '       <span>' + d.O3MODL + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Dept:</label>' +
+                '       <span>' + d.O3DEPT + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Sub-Dept:</label>' +
+                '       <span>' + d.O3SDPT + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Class:</label>' +
+                '       <span>' + d.O3CLAS + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Sub-Class:</label>' +
+                '       <span>' + d.O3SCLS + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Status:</label>' +
+                '       <span>' + d.O3SCCD + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Country:</label>' +
+                '       <span>' + d.O3TRB3 + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Long Desc:</label>' +
+                '       <span>' + d.O3LONG + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '</form>' +
+                '</div>' +
+                '<div class="col-6">' +
+                @*'<iframe src="@Url.Action("PreviewReport", "Report")#toolbar=0&navpanes=0&scrollbar=0&zoom=50" style="width: 100%; height: 300px;" frameborder="0"></iframe>' +*@
+                '<iframe src="@Url.Action("PreviewCrystalReport", "Report")?id=' + d.O3SKU + '#toolbar=0&navpanes=0&scrollbar=0&zoom=50" style="width: 100%; height: 300px;" frameborder="0"></iframe>' +
+                '</div>'
+                '</div>';
+    }
+</script>

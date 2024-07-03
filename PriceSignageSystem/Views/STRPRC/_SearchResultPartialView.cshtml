@@ -1,0 +1,779 @@
+﻿@using PriceSignageSystem.Models.Dto;
+@model STRPRCDto
+
+
+
+<iframe id="reportIframe" src="" style="display: none;"></iframe> @*For printing preview*@
+@using (Html.BeginForm("AutoPrintOnDemandReport", "Report", FormMethod.Post))
+{
+    @Html.HiddenFor(m => m.O3SKU)
+    <div class="container">
+        <h2 class="text-center bg-primarydark text-white p-2">Item Details</h2>
+
+        <div class="row">
+            <div class="col-md-6">
+                <dl class="row">
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3UPC)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3UPC, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SKU)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SKU, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3IDSC)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3IDSC, new { @class = "form-control clear", @disabled = "disabled", @id = "shortDesc" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3FNAM)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3FNAM, new { @class = "form-control clear", @disabled = "disabled", @id = "brand" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3MODL)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3MODL, new { @class = "form-control clear", @disabled = "disabled", @id = "model" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3DEPT)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3DEPT, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SDPT)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SDPT, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3CLAS)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3CLAS, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SCLS)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SCLS, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3LONG)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3LONG, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+                </dl>
+            </div>
+
+            <div class="col-md-6">
+                <dl class="row">
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SCCD)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SCCD, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3TRB3)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3TRB3, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3REGU)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3REGU, new { @class = "form-control clear", @disabled = "disabled", @id = "regPrice" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3POS)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3POS, new { @class = "form-control clear", @disabled = "disabled", @id = "currPrice" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SDT)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SDT, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3EDT)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3EDT, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3SLUM)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3SLUM, new { @class = "form-control clear", @disabled = "disabled" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3TUOM)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3TUOM, new { @class = "form-control clear", @disabled = "disabled", @id = "tuom", @oninput = "validateInput(event)" })</dd>
+
+                    <dt class="col-sm-4">@Html.LabelFor(m => m.O3DIV)</dt>
+                    <dd class="col-sm-8">@Html.TextBoxFor(m => m.O3DIV, new { @class = "form-control clear", @disabled = "disabled", @id = "divisor" })</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (Model.O3SKU != 0)
+        {
+            <div class="container">
+                <div class="row mb-3 d-flex justify-content-center">
+                    <div class="col-2">
+                    </div>
+                    <div class="col-8">
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group ">
+                                    @Html.LabelFor(m => m.SelectedTypeId, htmlAttributes: new { @class = "font-weight-bold" })
+                                    @Html.DropDownListFor(m => m.SelectedTypeId, Model.Types ?? new List<SelectListItem>(), "Select Type", new { @class = "form-control", disabled = true })
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group ">
+                                    @Html.LabelFor(m => m.SelectedSizeId, htmlAttributes: new { @class = "font-weight-bold" })
+                                    @Html.DropDownListFor(m => m.SelectedSizeId, Model.Sizes ?? new List<SelectListItem>(), "Select Size", new { @class = "form-control custom-select" })
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-group ">
+                                    @Html.LabelFor(m => m.SelectedCategoryId, htmlAttributes: new { @class = "font-weight-bold" })
+                                    @Html.DropDownListFor(m => m.SelectedCategoryId, Model.Categories ?? new List<SelectListItem>(), "Select Category", new { @class = "form-control", disabled = true })
+                                </div>
+                            </div>
+                            @if (Model.IsExemp == "Y")
+                            {
+                                <div class="d-flex justify-content-center">
+                                    <label style="color: red">THIS SKU/UPC HAS AN EXEMPTION</label>
+                                </div>
+                            }
+                            <div class="d-flex justify-content-center">
+                                <br/>
+                                @if (User.IsInRole("PCA Captain"))
+                                {
+                                    <button type="button" class="newPrint btn btn-primary mr-1" @(Model.IsExemp == "Y" ? "disabled" : "")>Print</button>
+                                    <button type="button" class="queuebtn btn btn-warning mr-1" @(Model.IsExemp == "Y" ? "disabled" : "")>Queue</button>
+                                    <button type="button" class="qListbtn btn btn-success mr-1">Print Queue</button>
+                                }
+                                else if (User.IsInRole("Administrator/Manager"))
+                                {
+                                    <button type="button" class="editBtn btn btn-secondary mr-1">Edit</button>
+                                    <button type="button" class="newPrint btn btn-primary mr-1">Print</button>
+                                    <button type="button" class="queuebtn btn btn-warning mr-1">Queue</button>
+                                    <button type="button" class="qListbtn btn btn-success mr-1">Print Queue</button>
+
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                    </div>
+                </div>
+
+                <div class="row">
+
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="container">
+                <div class="row mb-3 d-flex justify-content-center">
+                    <div class="col-2">
+                    </div>
+                    <div class="col-8">
+                        <div class="row">
+                            <div class="col-4">
+                            </div>
+                            <div class="col-4">
+                            </div>
+                            <div class="col-4">
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                @if (User.IsInRole("PCA Captain"))
+                                {
+                                    <button type="button" class="newPrint btn btn-primary mr-1">Print</button>
+                                    <button type="button" class="queuebtn btn btn-warning mr-1">Queue</button>
+                                    <button type="button" class="qListbtn btn btn-success mr-1">Print Queue</button>
+                                }
+                                else if (User.IsInRole("Administrator/Manager"))
+                                {
+                                    <button type="button" class="editBtn btn btn-secondary mr-1">Edit</button>
+                                    <button type="button" class="newPrint btn btn-primary mr-1">Print</button>
+                                    <button type="button" class="queuebtn btn btn-warning mr-1">Queue</button>
+                                    <button type="button" class="qListbtn btn btn-success mr-1">Print Queue</button>
+
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-2">
+                    </div>
+                </div>
+
+                <div class="row">
+
+                </div>
+            </div>
+        }
+        <hr />
+
+
+    </div>
+}
+<button type="button" class="btnCollapse btn btn-link" data-toggle="collapse" data-target="#collapseHistory" aria-expanded="false" aria-controls="collapseHistory">
+    View Queue Logs
+</button>
+
+<div id="collapseHistory" class="collapse">
+    <div class="card card-body">
+        @Html.Partial("_HistoryPartialView", Model.Histories)
+    </div>
+</div>
+
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>*@
+
+
+
+
+<script>
+    //function openReportInNewTab() {
+    //    var form = document.getElementById('reportForm');
+    //    form.target = '_blank';
+    //    form.submit();
+    //}
+
+    function openQueueReportInNewTab() {
+        var url = '/Queue/PrintQueueList';
+        window.open(url, '_blank');
+    }
+
+    function validateInput(event) {
+        var inputValue = event.target.value;
+        var regex = /^[A-Za-z]+$/; // Regular expression to match only letters
+
+        if (!regex.test(inputValue)) {
+            // If the input contains anything other than letters, remove those characters
+            event.target.value = inputValue.replace(/[^A-Za-z]/g, '');
+        }
+    }
+
+    $(document).ready(function () {
+
+        var origShortDesc = "";
+        var origBrand = "";
+        var origModel = "";
+        var origDivisor = "";
+        var origTuom = "";
+
+        $(".btnCollapse").on("click", function () {
+            // Toggle the aria-expanded attribute
+            var isExpanded = $(this).attr("aria-expanded") === "true";
+            $(this).attr("aria-expanded", !isExpanded);
+        });
+
+        var convertedRegPrice = 0;
+        var convertedCurrPrice = 0;
+
+        $(".editBtn").click(function () {
+            origShortDesc = $("#shortDesc").val();
+            origBrand = $("#brand").val();
+            origModel = $("#model").val();
+            origDivisor = $("#divisor").val();
+            origTuom = $("#tuom").val();
+
+            $("#currPrice").prop("disabled", false);
+            $("#shortDesc").prop("disabled", false);
+            $("#brand").prop("disabled", false);
+            $("#model").prop("disabled", false);
+            $("#divisor").prop("disabled", false);
+            $('#tuom').prop("disabled", false);
+
+        });
+
+        
+
+        $("#currPrice").on("change", function () {
+            var regPrice = $("#regPrice");
+            var currPrice = $("#currPrice");
+            convertedRegPrice = Number(regPrice.val());
+            convertedCurrPrice = Number(currPrice.val());
+            var typeId = $('#SelectedTypeId');
+
+            if (convertedCurrPrice >= convertedRegPrice) {
+                regPrice.val($(this).val());
+                typeId.val(1); //Regular
+            }
+            else if (convertedCurrPrice < convertedRegPrice) {
+                typeId.val(2); //Save
+            }
+
+        });
+
+        $(".newPrint").click(function () {
+
+            var isCurrDisabled = $('#currPrice').prop('disabled');
+
+            if (isCurrDisabled) {
+                var regPrice = $("#regPrice");
+                var currPrice = $("#currPrice");
+                convertedRegPrice = Number(regPrice.val());
+                convertedCurrPrice = Number(currPrice.val());
+                var typeId = $('#SelectedTypeId');
+
+                if (convertedCurrPrice >= convertedRegPrice) {
+                    regPrice.val(currPrice.val());
+                    typeId.val(1); //Regular
+                }
+
+                var reportDto = {
+                    O3SKU: @Model.O3SKU,
+                    SizeId: 0,
+                    TypeId: typeId.val(),
+                    CategoryId: 0,
+                    O3REGU: regPrice.val()
+                };
+
+                reportDto.TypeId = $('#SelectedTypeId').val();
+                reportDto.CategoryId = $('#SelectedCategoryId').val();
+                reportDto.SizeId = $('#SelectedSizeId').val();
+                $("#reportIframe").attr("src", "/Report/PrintPreviewSingleReport?response=" + JSON.stringify(reportDto));
+
+                var reportIframe = document.getElementById("reportIframe");
+                if (reportIframe) {
+                    reportIframe.onload = function () {
+                        reportIframe.contentWindow.print();
+                    };
+                    reportIframe.src = $("#reportIframe").attr("src");
+                }
+
+            }else {
+
+                $.ajax({
+                    url: '@Url.Action("GetAllReasons", "STRPRC")',
+                    type: 'POST',
+                    success: function (response) {
+                        var remarksOptions = '';
+
+                        for (var i = 0; i < response.length; i++) {
+                            var option = response[i];
+                            remarksOptions += '<option value="' + option.Description + '">' + option.Description + '</option>';
+                        }
+
+                        var dropdownHtml = '<div class="form-row">' +
+                            '<div class="form-group row col-12">' +
+                            '<label class="col-sm-2 col-form-label" for="remarksDropdown" style="color: red;">Remarks:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control custom-select" id="remarksDropdown" >' +
+                            remarksOptions +
+                            '</select>' +
+                            '</div>';
+
+                        var printButtonHtml = '<button id="editPrintBtn" class="btn btn-primary">Print</button>' +
+                            '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+
+                        var modalContent = '<div class="modal-dialog modal-dialog-centered">' +
+                            '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                            '<h5 class="modal-title">Edit Sku # ' + @Model.O3SKU + '</h5>' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                            dropdownHtml +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                            printButtonHtml +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Remove any existing modals
+                        $('#modalView').remove();
+
+                        // Append the modal to the body
+                        $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                        // Show the modal with fade-in effect from top
+                        $('#modalView').modal({
+                            show: true,
+                            backdrop: false,
+                            keyboard: false
+                        });
+
+                        $('#editPrintBtn').click(function () {
+                            
+                            var selectedRemarks= $('#remarksDropdown').val();
+                            var newShortDesc = $('#shortDesc').val();
+                            var newBrand = $('#brand').val();
+                            var newModel = $('#model').val();
+                            var newDivisor = $('#divisor').val();
+                            var newTuom = $('#tuom').val();
+
+                            if (selectedRemarks === '') {
+                                alert('Please select a valid option for Remarks.');
+                                return false;
+                            }
+
+                            $("#loadingContainer").show();
+                            var newtypeId = $('#SelectedTypeId').val();
+
+                            if (selectedRemarks !== '') {
+
+                                var reportDto = {
+                                    O3SKU: @Model.O3SKU,
+                                    SizeId: 0,
+                                    TypeId: newtypeId,
+                                    CategoryId: 0,
+                                    O3REGU: convertedRegPrice,
+                                    O3POS: convertedCurrPrice,
+                                    qRemarks: selectedRemarks,
+                                    O3IDSC: newShortDesc != origShortDesc ? newShortDesc : origShortDesc,
+                                    O3FNAM: newBrand != origBrand ? newBrand : origBrand,
+                                    O3MODL: newModel != origModel ? newModel : origModel,
+                                    O3DIV: newDivisor != origDivisor ? newDivisor : origDivisor,
+                                    O3TUOM: newTuom != origTuom ? newTuom : origTuom
+                                };
+
+                                reportDto.TypeId = $('#SelectedTypeId').val();
+                                if (convertedRegPrice == convertedCurrPrice) {
+                                    reportDto.TypeId = 1; // Validation for Negative Save (Curr > Reg)
+                                }
+                                reportDto.CategoryId = $('#SelectedCategoryId').val();
+                                reportDto.SizeId = $('#SelectedSizeId').val();
+                                $("#reportIframe").attr("src", "/Report/PrintPreviewSingleReport?response=" + JSON.stringify(reportDto));
+
+                                var reportIframe = document.getElementById("reportIframe");
+                                if (reportIframe) {
+                                    reportIframe.onload = function () {
+                                        $("#loadingContainer").hide();
+                                        reportIframe.contentWindow.print();
+                                    };
+                                    reportIframe.src = $("#reportIframe").attr("src");
+                                }
+                                $('.clear').val('');
+                                $('#modalView').modal('hide');
+
+                            } else {
+                                alert('Please input remarks!');
+                                $("#loadingContainer").hide();
+                            }
+
+
+                        });
+                            },
+                            error: function () {}
+                        });
+
+            }
+
+        });
+
+        $(".queuebtn").click(function () {
+            var isCurrDisabled = $('#currPrice').prop('disabled');
+            var newShortDesc = $('#shortDesc').val();
+            var newBrand = $('#brand').val();
+            var newModel = $('#model').val();
+            var newDivisor = $('#divisor').val();
+            var newTuom = $('#tuom').val();
+            var regPrice = $("#regPrice").val();
+            var currPrice = $("#currPrice").val();
+            convertedRegPrice = Number(regPrice);
+            convertedCurrPrice = Number(currPrice);
+
+            var typeId = $('#SelectedTypeId').val();
+
+            
+            if (convertedRegPrice == convertedCurrPrice) {
+                typeId = 1; // Validation for Negative Save (Curr > Reg)
+            }
+
+            var dto = {};
+
+            if (isCurrDisabled) {
+                dto = {
+                    O3SKU: @Model.O3SKU,
+                    TypeId: typeId,
+                };
+
+                $.ajax({
+                    url: "/Queue/QueueItem",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ dto: dto }),
+                    success: function (result) {
+                        // Show success modal
+                        var modalHtml = '<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">';
+                        modalHtml += '<div class="modal-dialog" role="document">';
+                        modalHtml += '<div class="modal-content">';
+                        modalHtml += '<div class="modal-header">';
+                        modalHtml += '<h5 class="modal-title" id="successModalLabel">Success!</h5>';
+                        modalHtml += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                        modalHtml += '<span aria-hidden="true">&times;</span>';
+                        modalHtml += '</button>';
+                        modalHtml += '</div>';
+                        modalHtml += '<div class="modal-body">';
+                        modalHtml += 'Item queued successfully!';
+                        modalHtml += '</div>';
+                        modalHtml += '<div class="modal-footer">';
+                        modalHtml += '<button type="button" class="qOkBtn btn btn-primary" data-dismiss="modal">OK</button>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+
+                        $('body').append(modalHtml);
+                        $('#successModal').modal('show');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error queuing item: " + error);
+                    }
+                });
+            } else {
+                $.ajax({
+                    url: '@Url.Action("GetAllReasons", "STRPRC")',
+                    type: 'POST',
+                    success: function (response) {
+                        var remarksOptions = '';
+
+                        for (var i = 0; i < response.length; i++) {
+                            var option = response[i];
+                            remarksOptions += '<option value="' + option.Description + '">' + option.Description + '</option>';
+                        }
+
+                        var dropdownHtml = '<div class="form-row">' +
+                            '<div class="form-group row col-12">' +
+                            '<label class="col-sm-2 col-form-label" for="qremarksDropdown" style="color: red;">Remarks:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control custom-select" id="qremarksDropdown" >' +
+                            remarksOptions +
+                            '</select>' +
+                            '</div>';
+
+                         // Build the HTML for the print button
+                        var printButtonHtml = '<button id="queuePrintBtn" class="btn btn-primary">Queue</button>' +
+                            '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+        
+
+                        // Create the modal content
+                        var modalContent = '<div class="modal-dialog modal-dialog-centered">' +
+                            '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                            '<h5 class="modal-title">Edit Sku # ' + @Model.O3SKU + '</h5>' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                            dropdownHtml +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                            printButtonHtml +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Remove any existing modals
+                        $('#modalView').remove();
+
+                        // Append the modal to the body
+                        $('body').append('<div id="modalView" class="modal qmodal">' + modalContent + '</div>');
+
+                        // Show the modal with fade-in effect from top
+                        $('#modalView').modal({
+                            show: true,
+                            backdrop: false,
+                            keyboard: false
+                        });
+
+                        $('#queuePrintBtn').click(function () {
+
+                            var selectedRemarks = $('#qremarksDropdown').val();
+
+                            if (selectedRemarks === '0') {
+                                alert('Please select a valid option for Remarks.');
+                                return false;
+                            }
+
+                            dto = {
+                                O3SKU: @Model.O3SKU,
+                                TypeId: typeId,
+                                O3REGU: convertedRegPrice,
+                                O3POS: convertedCurrPrice,
+                                Remarks: selectedRemarks,
+                                O3IDSC: newShortDesc != origShortDesc ? newShortDesc : origShortDesc,
+                                O3FNAM: newBrand != origBrand ? newBrand : origBrand,
+                                O3MODL: newModel != origModel ? newModel : origModel,
+                                O3DIV: newDivisor != origDivisor ? newDivisor : origDivisor,
+                                O3TUOM: newTuom != origTuom ? newTuom : origTuom
+                            };
+
+                            $.ajax({
+                                url: "/Queue/QueueItem",
+                                type: "POST",
+                                contentType: "application/json",
+                                data: JSON.stringify({ dto: dto }),
+                                success: function (result) {
+                                    $('.qmodal').modal('hide');
+                                    // Show success modal
+                                    var modalHtml = '<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">';
+                                    modalHtml += '<div class="modal-dialog" role="document">';
+                                    modalHtml += '<div class="modal-content">';
+                                    modalHtml += '<div class="modal-header">';
+                                    modalHtml += '<h5 class="modal-title" id="successModalLabel">Success!</h5>';
+                                    modalHtml += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                                    modalHtml += '<span aria-hidden="true">&times;</span>';
+                                    modalHtml += '</button>';
+                                    modalHtml += '</div>';
+                                    modalHtml += '<div class="modal-body">';
+                                    modalHtml += 'Item queued successfully!';
+                                    modalHtml += '</div>';
+                                    modalHtml += '<div class="modal-footer">';
+                                    modalHtml += '<button type="button" class="qOkBtn btn btn-primary" data-dismiss="modal">OK</button>';
+                                    modalHtml += '</div>';
+                                    modalHtml += '</div>';
+                                    modalHtml += '</div>';
+                                    modalHtml += '</div>';
+
+                                    $('body').append(modalHtml);
+                                    $('#successModal').modal('show');
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error("Error queuing item: " + error);
+                                }
+                            });
+                        });
+                    },
+                    error: function (error) { }
+                });
+            }
+
+        });
+
+         //PRINT QUEUE BUTTON
+        $('.qListbtn').click(function () {
+                $.ajax({
+                    url: '@Url.Action("GetAllSizes", "STRPRC")' ,
+                    type: 'POST',
+                    success: function (response) {
+                        // Create the dropdown options
+                        var sizeOptions = '';
+
+                        // Populate dropdown options from the server response
+                        for (var i = 0; i < response.length; i++) {
+                            var option = response[i];
+                            sizeOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+
+                        // Build the HTML for the dropdowns
+                        var dropdownHtml = '<div class="form-row">' +
+                            '<div class="form-group row col-12">' +
+                            '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown" >' +
+                            sizeOptions +
+                            '</select>' +
+                            '</div>';
+
+                        // Build the HTML for the print button
+                        var printButtonHtml = '<button id="printQueueButton" class="btn btn-primary">Print</button>';
+
+                        // Create the modal content
+                        var modalContent = '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+                            '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                            '<h5 class="modal-title">Print Queue Report</h5>' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                            dropdownHtml +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                            printButtonHtml +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Remove any existing modals
+                        $('#modalView').remove();
+
+                        // Append the modal to the body
+                        $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                        // Show the modal with fade-in effect from top
+                        $('#modalView').modal({
+                            show: true,
+                            backdrop: false,
+                            keyboard: false
+                        });
+
+                        $('#printQueueButton').click(function () {
+                            $("#loadingContainer").show();
+
+                            var selectedSize = $('#sizeDropdown').val();
+                            var url = '@Url.Action("CheckItemQueuesPerUser", "Queue")';
+                            $.ajax({
+                                url: url,
+                                type: 'POST',
+                                data: { sizeId: selectedSize },
+                                success: function (response) {
+                                    if (response.success) {
+                                        $('#modalView').modal('hide');
+                                        $("#reportIframe").attr("src", "/Queue/PrintPreviewQueueReport?sizeId=" + selectedSize + "");
+                                        var reportIframe = document.getElementById("reportIframe");
+                                        if (reportIframe) {
+                                            reportIframe.onload = function () {
+                                                reportIframe.contentWindow.print();
+                                                $("#loadingContainer").hide();
+
+                                            };
+                                            reportIframe.src = $("#reportIframe").attr("src");
+                                        }
+
+                                        //var url = "/Queue/PrintPreviewQueueReport";
+                                        //$.ajax({
+                                        //    url: url,
+                                        //    type: 'GET',
+                                        //    data: { sizeId: selectedSize },
+                                        //    success: function (data) {
+                                        //        if (!data)
+                                        //            alert("Error in printing.");
+
+                                        //    }
+                                        //});
+                                    } else {
+                                        $("#loadingContainer").hide();
+                                        $('#modalView').modal('hide');
+                                        // Show success modal
+                                        var modalHtml = '<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">';
+                                        modalHtml += '<div class="modal-dialog" role="document">';
+                                        modalHtml += '<div class="modal-content">';
+                                        modalHtml += '<div class="modal-header">';
+                                        modalHtml += '<h5 class="modal-title" id="errorModalLabel">Error!</h5>';
+                                        modalHtml += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                                        modalHtml += '<span aria-hidden="true">&times;</span>';
+                                        modalHtml += '</button>';
+                                        modalHtml += '</div>';
+                                        modalHtml += '<div class="modal-body">';
+                                        modalHtml += 'PLEASE QUEUE A PRODUCT FIRST.';
+                                        modalHtml += '</div>';
+                                        modalHtml += '<div class="modal-footer">';
+                                        modalHtml += '<button type="button" class="okBtn btn btn-primary" data-dismiss="modal">OK</button>';
+                                        modalHtml += '</div>';
+                                        modalHtml += '</div>';
+                                        modalHtml += '</div>';
+                                        modalHtml += '</div>';
+
+                                        $('body').append(modalHtml);
+                                        $('#errorModal').modal('show');
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                }
+                            });
+
+                        });
+                    }
+                });
+        });
+
+        // Close the modal when the modal close button is clicked
+        $(document).on('click', '.modal .close', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+        $(document).on('click', '.modal .okBtn', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+        $(document).on('click', '#successModal .close', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+        $(document).on('click', '#successModal .qOkBtn', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+        // Remove the modal from the DOM when it is hidden
+        $(document).on('hidden.bs.modal', '.modal', function () {
+            $('#searchInput').val(''); // Reset the value of the search input
+            $('#searchInput').focus();
+
+            // Trigger the Enter key event
+            var enterKeyEvent = $.Event('keyup');
+            enterKeyEvent.keyCode = 13; // Enter key code
+            $('#searchInput').trigger(enterKeyEvent);
+            $(this).remove();
+        });
+    });
+</script>

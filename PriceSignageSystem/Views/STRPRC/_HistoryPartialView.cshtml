@@ -1,0 +1,139 @@
+﻿
+<div class="container">
+    <center><h3>Queue History</h3></center>
+    <table id="qHistoryTbl" class="table table-sm table-hover" style="width:100%; text-align: center;">
+        <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Date Queued</th>
+                <th>Date Printed</th>
+                <th>Remarks</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="7"> No history available</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: '/STRPRC/GetHistoryList',
+            type: "POST",
+            success: function (data) {
+                var qtable = $('#qHistoryTbl').DataTable({
+                    deferRender: true,
+                    lengthMenu: [
+                        [10, 25, 50, -1],
+                        [10, 25, 50, 'All']
+                    ],
+                    pageLength: 10,
+                    data: data,
+                    columnDefs: [
+                        { targets: [0, 1, 2, 3, 4, 5, 6], orderable: false }
+                    ],
+                    columns: [
+                        { data: 'O3SKU', name: 'O3SKU' },
+                        { data: 'TypeName', name: 'TypeName' },
+                        { data: 'Status', name: 'Status' },
+                        {
+                            data: 'DateCreated',
+                            name: 'DateCreated',
+                            render: function (data, type, row) {
+                                if (data != null) {
+                                    var date = new Date(parseInt(data.substr(6)));
+                                    return date.toLocaleDateString();
+                                }
+
+                                return "-";
+                            }
+                        },
+                        {
+                            data: 'DateUpdated',
+                            name: 'DateUpdated',
+                            render: function (data, type, row) {
+                                if (data != null) {
+                                    var date = new Date(parseInt(data.substr(6)));
+                                    return date.toLocaleDateString();
+                                }
+
+                                return "-";
+                            }
+                        },
+                        { data: 'Remarks', name: 'Remarks' },
+                        {
+                            data: 'Id', render: function (data,type,row) {
+                                if (row.Status === 'Printed') {
+                                    return '<button type="button" class="qbtn btn btn-primary" onclick="QueueItem('+ data +')">Queue</button>';
+                                } else {
+                                    return null;
+                                }
+                            }
+                        },
+                    ],
+                    "dom": '<"top"lfB>rt<"bottom"ip>',
+
+                });
+
+            },
+            error: function (error) {
+            }
+        })
+
+    });
+
+    function QueueItem(Id) {
+            $.ajax({
+                url: '@Url.Action("RequeueItem", "Queue")',
+                type: 'POST',
+                data: { id: Id },
+                success: function (response) {
+                    if (response.success)
+                    {
+                        var modalHtml = '<div class="modal fade" id="qsuccessModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">';
+                        modalHtml += '<div class="modal-dialog" role="document">';
+                        modalHtml += '<div class="modal-content">';
+                        modalHtml += '<div class="modal-header">';
+                        modalHtml += '<h5 class="modal-title" id="successModalLabel">Success!</h5>';
+                        modalHtml += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                        modalHtml += '<span aria-hidden="true">&times;</span>';
+                        modalHtml += '</button>';
+                        modalHtml += '</div>';
+                        modalHtml += '<div class="modal-body">';
+                        modalHtml += 'Item queued successfully!';
+                        modalHtml += '</div>';
+                        modalHtml += '<div class="modal-footer">';
+                        modalHtml += '<button type="button" class="qOkBtn btn btn-primary" data-dismiss="modal">OK</button>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+                        modalHtml += '</div>';
+
+                        $('body').append(modalHtml);
+                        $('#qsuccessModal').modal('show');
+                    }
+                },
+                error: function () {
+
+                }
+            });
+        }
+
+        $(document).on('click', '#qsuccessModal .close', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+        $(document).on('click', '#qsuccessModal .qOkBtn', function () {
+            $('#modalView').modal('hide');
+            window.location.href = '/STRPRC/Index';
+        });
+
+
+</script>

@@ -1,0 +1,854 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>PCA</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.3/css/select.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+    <style>
+        td.details-control {
+            text-align: center;
+            color: #6396fd;
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            text-align: center;
+            color: #fd6363;
+        }
+
+        th.no-sort::after {
+            display: none !important;
+        }
+
+        .custom-button {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid green;
+            border-radius: 4px;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-left: 10px;
+        }
+
+
+
+        .dataTables_wrapper .dataTables_filter {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper bg-white px-3">
+        <br />
+        <div class="content">
+            <div class="overlay-wrapper" id="loadingContainer" style="display:none;">
+                <div class="overlay" style="background-color: rgba(0, 0, 0, 0.59); z-index: 999999;">
+                    <img class="" src="~/Content/Images/loading.gif" alt="Loading" style="max-width:350px;" />
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label for="startDate">Data as of:</label>
+                    <input type="text" id="startDate" name="startDate" class="form-control" disabled />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card elevation-3  px-0 ">
+                <div id="new-exemption" class="tab-pane active mx-2">
+                    <h3 class="text-center mt-2">Exemptions</h3>
+                    <table id="new-exemption-table" class="table table-sm table-hover" style="width: 100%; text-align: center;">
+                        <thead style="background-color: #1C3766;" class="text-white">
+                            <tr>
+                                <th>SKU</th>
+                                <th>IsExemp</th>
+                                <th style="width: 150px;">On Hand</th>
+                                <th>UPC</th>
+                                <th style="width: 200px;" class="text-nowrap">Item Desc.</th>
+                                <th>Reg Price</th>
+                                <th>Current Price</th>
+                                <th>Date Start</th>
+                                <th>Date End</th>
+                                <th>Sign Type</th>
+                                <th>Size</th>
+                                <th>Category</th>
+                                <th>Dept <i class="filter-icon bi bi-funnel-fill"></i></th>
+                                <th>Reverted?</th>
+                                <th>Exemption Type</th>
+                                <th>Exemption Date</th>
+                                <th style="max-width: 200px">Store Codes</th>
+                                <th>CO Contract?</th>
+                                <th>O3TYPE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="19" style="text-align: center;">--No Data--</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/Scripts/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+
+</body>
+</html>
+<script>
+    $(document).ready(function () {
+
+        InitLoad();
+
+        var tableNewExemption = null;
+
+        function InitLoad() {
+            $("#loadingContainer").show();
+
+            $.ajax({
+                url: '/STRPRC/LoadPCA',
+                type: "POST",
+                dataType: 'json',
+                success: function (data) {
+
+                    var latestDate = data.LatestDate;
+                    const day = latestDate.toString().substr(4, 2);
+                    const month = latestDate.toString().substr(2, 2);
+                    const year = latestDate.toString().substr(0, 2);
+                    const formattedDate = `20${year}-${month}-${day}`;
+                    $('#startDate').val(formattedDate);
+
+                    if (tableNewExemption !== null) {
+                        tableNewExemption.destroy();
+                    }
+
+                    RenderDatatableNewExemptionInv(data.ExcemptionList);
+
+                    $("#loadingContainer").hide();
+                },
+                error: function (error) {
+                    $("#loadingContainer").hide();
+                }
+            });
+        }
+
+        function RenderDatatableNewExemptionInv(data) {
+            tableNewExemption = $('#new-exemption-table').DataTable({
+                scrollY: 500,
+                scrollX: true,
+                scroller: true,
+                deferRender: true,
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, 'All']
+                ],
+                pageLength: -1,
+                data: data,
+                columnDefs: [
+                    { targets: [1,2,10,11,13, 17, 18], visible: false },
+                    { targets: [12], orderable: false },
+                ],
+                columns: [
+                    { data: 'O3SKU', name: 'O3SKU' },
+                    { data: 'IsExemp', name: 'IsExemp' },
+                    { data: 'IBHAND', name: 'IBHAND' },
+                    { data: 'O3UPC', name: 'O3UPC' },
+                    { data: 'O3IDSC', name: 'O3IDSC', className: 'text-nowrap' },
+                    { data: 'O3REG', name: 'O3REG' },
+                    { data: 'O3POS', name: 'O3POS' },
+                    { data: 'O3SDT', name: 'O3SDT' },
+                    { data: 'O3EDT', name: 'O3EDT' },
+                    { data: 'TypeName', name: 'TypeName' },
+                    { data: 'SizeName', name: 'SizeName' },
+                    { data: 'CategoryName', name: 'CategoryName' },
+                    { data: 'DepartmentName', name: 'DepartmentName' },
+                    { data: 'IsReverted', name: 'IsReverted' },
+                    { data: 'NegativeSave', name: 'NegativeSave' },
+                    { data: 'DateExemption', name: 'DateExemption' },
+                    //{ data: 'StoreIDs', name: 'StoreIDs', style:'max-width: 100px; word-wrap: break-word !important;'},
+                    {
+                        data: 'StoreIDs', name: 'StoreIDs', render: function (data) {
+                            return '<div style="width: 200px; word-wrap: break-word;">' + data + '</div>';
+                        }
+                    },
+                    { data: 'HasCoContract', name: 'HasCoContract' },
+                    { data: 'O3TYPE', name: 'O3TYPE' },
+
+                ],
+                "dom": '<"top"lfB>rt<"bottom"ip>',
+
+                initComplete: function () {
+                    var date = $('#startDate').val();
+                    // Create the button element
+                    var $button = $('<button>')
+                        .addClass('custom-button')
+                        .text('Export')
+                        .on('click', function () {
+                            window.location.href = '/STRPRC/ExportDataTableToExcel?tab=NewExemptionInventory&date=' + date + '&filter=' + $select.val();
+                        });
+
+
+                    // Create a select element
+                    var $select = $('<select style="margin-left: 20px; padding: 4px;">');
+
+                    // Add options to the select element
+                    var $All = $('<option>').text('All').val('all');
+                    var $saveZero = $('<option>').text('Zero Save').val('saveZero');
+                    var $negativeSave = $('<option>').text('Negative Save').val('negativeSave');
+                    var $noCC = $('<option>').text('No CO Contract').val('noCC');
+
+                    // Append options to the select element
+                    $select.append($All, $saveZero, $negativeSave, $noCC);
+
+                    $select.on('change', function () {
+                        // Log the selected value to the console
+                        if ($select.val() == "saveZero") {
+                            tableNewExemption.column(2).search("").draw();
+                            tableNewExemption.column(1).search("Y", true, false).draw();
+                            tableNewExemption.column(14).search("Zero Save", true, false).draw();
+                        }
+                        else if ($select.val() == "negativeSave") {
+                            tableNewExemption.column(2).search("").draw();
+                            tableNewExemption.column(1).search("Y", true, false).draw();
+                            tableNewExemption.column(14).search("Negative Save", true, false).draw();
+
+                        }
+                        else if ($select.val() == "noCC") {
+                            tableNewExemption.column(17).search("", true, false).draw();
+                            tableNewExemption.column(18).search("CO", true, false).draw();
+
+                        }
+                        else {
+                            tableNewExemption.column(2).search("").draw();
+                            tableNewExemption.column(1).search("").draw();
+                            tableNewExemption.column(14).search("").draw();
+                            tableNewExemption.column(17).search("").draw();
+                            tableNewExemption.column(18).search("").draw();
+
+
+                        }
+
+                        //console.log(data);
+                    });
+
+                    var dataTableWrapper = $('#new-exemption-table').closest('.dataTables_wrapper');
+                    dataTableWrapper.find('.dataTables_filter').before($button);
+                    dataTableWrapper.find('.dataTables_filter').before($select);
+
+                }
+            });
+
+            $('.queueBtnNewExemption').click(function () {
+                var selectedRows = [];
+                $('.rowCheckboxNewExemption:checked').each(function () {
+                    var rowId = $(this).data('id');
+                    selectedRows.push(rowId);
+                });
+
+                if (selectedRows.length > 0) {
+                    console.log('Selected Row IDs:', selectedRows);
+
+                    // Build the HTML for the dropdowns
+                    var dropdownHtml = '<div class="form-row">' +
+                        '<div class="form-group row col-12">' +
+                        '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                        '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown">' +
+                        '<option value="1">Whole</option>' +
+                        '<option value="2">1/8</option>' +
+                        '<option value="3">Jewelry</option>' +
+                        '</select>' +
+                        '</div>' +
+                        '</div>';
+                    // Build the HTML for the print button
+                    var buttonHtml = '<button id="queueSelectedButtonNewExemption" class="btn btn-primary">Queue</button>' +
+                        '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+                    // Create the modal content
+                    var modalContent = '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+                        '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                        '<h5 class="modal-title">Queue</h5>' +
+                        '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                        '<span aria-hidden="true">&times;</span>' +
+                        '</button>' +
+                        '</div>' +
+                        '<div class="modal-body">' +
+                        dropdownHtml +
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        buttonHtml +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                    // Remove any existing modals
+                    $('#modalView').remove();
+
+                    // Append the modal to the body
+                    $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                    // Show the modal with fade-in effect from top
+                    $('#modalView').modal({
+                        show: true,
+                        backdrop: false,
+                        keyboard: false
+                    });
+
+                    // Set default values for the dropdowns
+                    $('#sizeDropdown').val(2); // 1/8
+
+                    // PRINT MULTIPLE
+                    $('#queueSelectedButtonNewExemption').click(function () {
+                        $("#loadingContainer").show();
+                        var sizeId = $('#sizeDropdown').val();
+
+                        $.ajax({
+                            url: '/Queue/QueueSelectedItems',
+                            type: "POST",
+                            data: { sizeId: sizeId, selectedRows: selectedRows },
+                            success: function (data) {
+                                $("#loadingContainer").hide();
+                                // Show success modal
+                                var modalHtml = '<div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">';
+                                modalHtml += '<div class="modal-dialog" role="document">';
+                                modalHtml += '<div class="modal-content">';
+                                modalHtml += '<div class="modal-header">';
+                                modalHtml += '<h5 class="modal-title" id="successModalLabel">Success!</h5>';
+                                modalHtml += '<button type="button" class="close" data-dismiss="modal" aria-label="Close">';
+                                modalHtml += '<span aria-hidden="true">&times;</span>';
+                                modalHtml += '</button>';
+                                modalHtml += '</div>';
+                                modalHtml += '<div class="modal-body">';
+                                modalHtml += 'Item queued successfully!';
+                                modalHtml += '</div>';
+                                modalHtml += '<div class="modal-footer">';
+                                modalHtml += '<button type="button" class="qOkBtn btn btn-primary" data-dismiss="modal">OK</button>';
+                                modalHtml += '</div>';
+                                modalHtml += '</div>';
+                                modalHtml += '</div>';
+                                modalHtml += '</div>';
+
+                                $('body').append(modalHtml);
+                                $('#successModal').modal('show');
+                            },
+                            error: function (error) {
+
+                            }
+                        })
+
+                        $('#modalView').modal('hide');
+                        $('input[type="checkbox"]').prop('checked', false);
+
+                    });
+
+                } else {
+                    alert('Please select items to queue.');
+                }
+            });
+
+            //$('#selectAllNewExemption').on('change', function () {
+            //    var isChecked = $(this).is(':checked');
+            //    $('.rowCheckboxNewExemption').prop('checked', isChecked);
+            //});
+
+            $('.printAllBtnNewExemption').on('click', function () {
+
+                var selectedRows = [];
+                $('.rowCheckboxNewExemption:checked').each(function () {
+                    var rowId = $(this).data('id');
+                    selectedRows.push(rowId);
+                });
+
+                if (selectedRows.length > 0) {
+                    console.log('Selected Row IDs:', selectedRows);
+
+                    // Build the HTML for the dropdowns
+                    var dropdownHtml = '<div class="form-row">' +
+                        '<div class="form-group row col-12">' +
+                        '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                        '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown">' +
+                        '<option value="1">Whole</option>' +
+                        '<option value="2">1/8</option>' +
+                        '<option value="3">Jewelry</option>' +
+                        '</select>' +
+                        '</div>' +
+                        '</div>';
+                    // Build the HTML for the print button
+                    var buttonHtml = '<button id="printSelectedButtonNewExemption" class="btn btn-primary">Print</button>' +
+                        '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+                    // Create the modal content
+                    var modalContent = '<div class="modal-dialog modal-sm modal-dialog-centered">' +
+                        '<div class="modal-content">' +
+                        '<div class="modal-header">' +
+                        '<h5 class="modal-title">Print Report</h5>' +
+                        '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                        '<span aria-hidden="true">&times;</span>' +
+                        '</button>' +
+                        '</div>' +
+                        '<div class="modal-body">' +
+                        dropdownHtml +
+                        '</div>' +
+                        '<div class="modal-footer">' +
+                        buttonHtml +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                    // Remove any existing modals
+                    $('#modalView').remove();
+
+                    // Append the modal to the body
+                    $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                    // Show the modal with fade-in effect from top
+                    $('#modalView').modal({
+                        show: true,
+                        backdrop: false,
+                        keyboard: false
+                    });
+
+                    // Set default values for the dropdowns
+                    $('#sizeDropdown').val(2); // 1/8
+
+
+                    //Start for print preview multiple report
+                    // PRINT MULTIPLE
+                    $('#printSelectedButtonNewExemption').click(function () {
+                        $("#loadingContainer").show();
+                        var sizeId = $('#sizeDropdown').val();
+
+                        $("#reportIframe").attr("src", "/Report/PrintPreviewMultipleReport?selectedIds=" + selectedRows + "&sizeId=" + sizeId + "");
+                        var reportIframe = document.getElementById("reportIframe");
+                        if (reportIframe) {
+                            $('.rowCheckboxWith:checked').each(function () {
+                                var row = $(this).closest('tr');
+                                var table = row.closest('table');
+                                var rowIndex = table.DataTable().row(row).index();
+                                var specificRow = $('#new-exemption-table tbody tr:eq(' + rowIndex + ')');
+                                specificRow.find('td:eq(2)').text("Yes");
+                                specificRow.find('td:eq(2)').css('color', 'green');
+
+                            });
+                            reportIframe.onload = function () {
+                                $("#loadingContainer").hide();
+                                reportIframe.contentWindow.print();
+                            };
+                            reportIframe.src = $("#reportIframe").attr("src");
+                        }
+                        $('#modalView').modal('hide');
+                        $('input[type="checkbox"]').prop('checked', false);
+
+                        //var url = "/Report/PrintPreviewMultipleReport?selectedIds=" + encodeURIComponent(selectedRows.join(',')) + "&sizeId=" + sizeId + "";
+                        //$.ajax({
+                        //    url: url,
+                        //    type: 'GET',
+                        //    data: { selectedIds: selectedRows, sizeId: sizeId },
+                        //    success: function (data) {
+                        //        if (!data)
+                        //            alert("Error in printing.");
+                        //        else {
+                        //            $('.rowCheckboxNewExemption:checked').each(function () {
+                        //                var row = $(this).closest('tr');
+                        //                var table = row.closest('table');
+                        //                var rowIndex = table.DataTable().row(row).index();
+                        //                var specificRow = $('#new-exemption-table tbody tr:eq(' + rowIndex + ')');
+                        //                specificRow.find('td:eq(2)').text("Yes");
+                        //                specificRow.find('td:eq(2)').css('color', 'green');
+
+                        //            });
+                        //        }
+
+                        //    }
+                        //});
+
+                        //$("#loadingContainer").hide();
+                        //$('#modalView').modal('hide');
+                        //$('input[type="checkbox"]').prop('checked', false);
+                    });
+                    //End for print preview multiple report
+
+                } else {
+                    alert('Please select items to print.');
+                }
+            });
+        }
+        function format(d) {
+            // `d` is the original data object for the row
+            return '<div class="row">' +
+                '<div class="col-6">' +
+                '<form>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Brand:</label>' +
+                '       <span>' + d.O3FNAM + '</span>' +
+                '   </div>' +
+                '  <div class="form-group col">' +
+                '       <label>Model:</label>' +
+                '       <span>' + d.O3MODL + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Dept:</label>' +
+                '       <span>' + d.O3DEPT + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Sub-Dept:</label>' +
+                '       <span>' + d.O3SDPT + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Class:</label>' +
+                '       <span>' + d.O3CLAS + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Sub-Class:</label>' +
+                '       <span>' + d.O3SCLS + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Status:</label>' +
+                '       <span>' + d.O3SCCD + '</span>' +
+                '   </div>' +
+                '   <div class="form-group col">' +
+                '       <label>Country:</label>' +
+                '       <span>' + d.O3TRB3 + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="form-row">' +
+                '   <div class="form-group col">' +
+                '       <label>Long Desc:</label>' +
+                '       <span>' + d.O3LONG + '</span>' +
+                '   </div>' +
+                '</div>' +
+                '</form>' +
+                '</div>' +
+                '<div class="col-6">' +
+                @*'<iframe src="@Url.Action("PreviewReport", "Report")#toolbar=0&navpanes=0&scrollbar=0&zoom=50" style="width: 100%; height: 300px;" frameborder="0"></iframe>' +*@
+                '<iframe src="@Url.Action("PreviewCrystalReport", "Report")?id=' + d.O3SKU + '#toolbar=0&navpanes=0&scrollbar=0&zoom=50" style="width: 100%; height: 300px;" frameborder="0"></iframe>' +
+                '</div>'
+                '</div>';
+        }
+
+        $('#new-exemption-table').on('click', '.printBtn', function () {
+            var rowId = $(this).data('id');
+
+            $.ajax({
+                url: '@Url.Action("GetDataBySKU", "STRPRC")' ,
+                type: 'POST',
+                data: { id: rowId },
+                success: function (response) {
+
+                        // Create the dropdown options
+                        var sizeOptions = '';
+                        var typeOptions = '';
+                        var categoryOptions = '';
+
+                        // Populate dropdown options from the server response
+                        for (var i = 0; i < response.SizeArray.length; i++) {
+                            var option = response.SizeArray[i];
+                            sizeOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+                        for (var i = 0; i < response.TypeArray.length; i++) {
+                            var option = response.TypeArray[i];
+                            typeOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+                        for (var i = 0; i < response.CategoryArray.length; i++) {
+                            var option = response.CategoryArray[i];
+                            categoryOptions += '<option value="' + option.Id + '">' + option.Name + '</option>';
+                        }
+
+                        // Build the HTML for the dropdowns
+                        var dropdownHtml = '<div class="form-row">' +
+                            '<div class="form-group row col-12">' +
+                            '<label class="col-sm-2 col-form-label" for="sizeDropdown">Size:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="sizeDropdown" >' +
+                            sizeOptions +
+                            '</select>' +
+                            '</div>' +
+                            '<div class="form-group row col-md-12">' +
+                            '<label class="col-sm-2 col-form-label" for="typeDropdown">Type:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="typeDropdown" disabled>' +
+                            typeOptions +
+                            '</select>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div class="form-row">' +
+                            '<div class="form-group row col-md-12">' +
+                            '<label class="col-sm-2 col-form-label" for="categoryDropdown">Category:</label>' +
+                            '<select class="col-sm-9  ml-3 form-control" id="categoryDropdown" disabled>' +
+                            categoryOptions +
+                            '</select>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Build the HTML for the print button
+                        var buttonHtml = '<button id="printButton" class="btn btn-primary">Print</button>' +
+                        '<button type="button" class="btn btn-secondary ml-2" data-dismiss="modal">Cancel</button>';
+
+                        // Create the modal content
+                        var modalContent = '<div class="modal-dialog modal-dialog-centered">' +
+                            '<div class="modal-content">' +
+                            '<div class="modal-header">' +
+                            '<h5 class="modal-title">Print Report</h5>' +
+                            '<button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                            '<span aria-hidden="true">&times;</span>' +
+                            '</button>' +
+                            '</div>' +
+                            '<div class="modal-body">' +
+                            dropdownHtml +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                            buttonHtml +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+
+                        // Remove any existing modals
+                        $('#modalView').remove();
+
+                        // Append the modal to the body
+                        $('body').append('<div id="modalView" class="modal">' + modalContent + '</div>');
+
+                        // Show the modal with fade-in effect from top
+                        $('#modalView').modal({
+                            show: true,
+                            backdrop: false,
+                            keyboard: false
+                        });
+
+                        // Set default values for the dropdowns
+                        $('#sizeDropdown').val(response.SizeId);
+                        $('#typeDropdown').val(response.TypeId);
+                        $('#categoryDropdown').val(response.CategoryId);
+
+                        //Start for print preview single report
+                        // Print button click event handler
+                    $('#printButton').click(function () {
+                        $("#loadingContainer").show();
+                        response.SizeId = $('#sizeDropdown').val();
+                        response.TypeId = $('#typeDropdown').val();
+                        response.CategoryId = $('#categoryDropdown').val();
+                        response.O3IDSC = "";
+                        response.O3LONG = "";
+                        response.O3FNAM = "";
+                        response.O3MODL = "";
+                        $("#reportIframe").attr("src", "/Report/PrintPreviewSingleReport?response=" + JSON.stringify(response));
+                        var reportIframe = document.getElementById("reportIframe");
+                        if (reportIframe) {
+                            reportIframe.onload = function () {
+                                $("#loadingContainer").hide();
+                                reportIframe.contentWindow.print();
+                            };
+                            reportIframe.src = $("#reportIframe").attr("src");
+                        }
+                        $('#modalView').modal('hide');
+                        var cell = tableNewExemption.cell({ row: 0, column: 2 });
+                        cell.data('Yes');
+                        tableNewExemption.draw();
+
+                             @*$.ajax({
+                                url: '@Url.Action("PrintPreviewSingleReport", "Report")',
+                                type: 'GET',
+                                data: { response: JSON.stringify(response)},
+                                success: function (data) {
+                                    if (!data)
+                                        alert("Error in printing.");
+                                    else {
+                                        var specificRow = $('#new-exemption-table tbody tr:eq(' + rowIndex + ')');
+                                        specificRow.find('td:eq(2)').text("Yes");
+                                        specificRow.find('td:eq(2)').css('color', 'green');
+                                    }
+
+                                }
+                            });
+                        $("#loadingContainer").hide();
+                        $('#modalView').modal('hide');*@
+                    });
+                        //End for print preview single report
+                }
+            });
+        });
+
+        // Close the modal
+        $(document).on('click', '.modal .close', function () {
+            $('#modalView').modal('hide');
+        });
+
+        // Remove the modal from the DOM when it is hidden
+        $(document).on('hidden.bs.modal', '.modal', function () {
+            $(this).remove();
+        });
+
+        // collapsible for NewExemption inv
+        $('#new-exemption-table tbody').on('click', 'td.details-control', function () {
+
+            var tr = $(this).closest('tr');
+            var tdi = tr.find("i.fa-solid");
+            var row = tableNewExemption.row(tr);
+
+            if (row.child.isShown()) {
+                // This row is already open - close it
+                row.child.hide();
+                tr.removeClass('shown');
+                tdi.first().removeClass('fa-solid fa-square-caret-up');
+                tdi.first().addClass('fa-solid fa-square-caret-down');
+            }
+            else {
+                // Open this row
+
+                $.ajax({
+                    url: '/STRPRC/GetSKUDetails',
+                    type: "GET",
+                    data: { O3SKU: row.data().O3SKU },
+                    success: function (response) {
+                        row.child(format(response)).show();
+                        tr.addClass('shown');
+                        tdi.first().removeClass('fa-solid fa-square-caret-down');
+                        tdi.first().addClass('fa-solid fa-square-caret-up');
+                    }
+                });
+            }
+        });
+
+        // FOR NewExemption TAB
+        var dialog2 = $('<div>').dialog({
+            autoOpen: false,
+            modal: true,
+            resizable: false,
+            width: 300,
+            position: { my: 'center', at: 'center', of: window },
+            open: function (event, ui) {
+                $('.ui-widget-overlay').bind('click', function () {
+                    dialog2.dialog('close');
+                });
+            },
+            close: function (event, ui) {
+                $('.ui-widget-overlay').unbind('click');
+            }
+        });
+        $('#new-exemption-table thead').on('click', '.filter-icon', function (event) {
+            event.stopPropagation(); // Prevent event propagation
+
+            var columnIndex = $(this).closest('th').index() + 4;
+            var column = tableNewExemption.column(columnIndex);
+
+            // Clear existing filter input
+            dialog2.dialog('option', 'title', 'Filter Dept').html('');
+
+            // Get distinct values of the column
+            var distinctValues = column.data().unique().toArray();
+
+            // Retrieve previously selected values (if any)
+
+            var selectedValues = column.search().split('|').map(function (value) {
+                return value.trim();
+            });
+
+            if (selectedValues.length > 0) {
+                selectedValues[0] = selectedValues[0].replace(/^\^\(/, '');
+                var lastIndex = selectedValues.length - 1;
+                selectedValues[lastIndex] = selectedValues[lastIndex].replace(/\)\$$/, '');
+            }
+
+
+            // Create checkboxes for each distinct value
+            var scrollableDiv = $('<div>').css({
+                'max-height': '200px', // Set a maximum height for scrolling
+                'overflow-y': 'scroll' // Enable vertical scrolling
+            });
+
+            var checkboxContainer = $('<div>').css({
+                'display': 'flex',
+                'flex-direction': 'column', // Align checkboxes vertically
+                'gap': '5px' // Add spacing between checkboxes
+            });
+
+            // Add "Select All" checkbox
+            var selectAllCheckbox = $('<input type="checkbox">').addClass('filter-checkbox select-all-checkbox');
+            var selectAllLabel = $('<label>').text('Select All').prepend(selectAllCheckbox);
+            checkboxContainer.prepend(selectAllLabel);
+
+            for (var i = 0; i < distinctValues.length; i++) {
+                var checkbox = $('<input type="checkbox">').addClass('filter-checkbox').val(distinctValues[i]);
+                if (selectedValues.includes(distinctValues[i])) {
+                    checkbox.prop('checked', true);
+                }
+                var label = $('<label>').text(distinctValues[i]).prepend(checkbox);
+                checkboxContainer.append(label);
+            }
+
+            scrollableDiv.append(checkboxContainer);
+            dialog2.append(scrollableDiv);
+
+            // Create button container for the "OK" and "Clear All Checkboxes" buttons
+            var buttonContainer = $('<div>').css('display', 'flex');
+            dialog2.append(buttonContainer);
+
+            // Create "Clear All Checkboxes" button
+            var clearButton = $('<button>').text('Clear All').addClass('btn btn-secondary btn-sm').css('background-color', 'gray').click(function () {
+                $('.filter-checkbox').prop('checked', false);
+                applyFilter();
+            });
+            buttonContainer.append(clearButton);
+
+            // Create "OK" button
+            var okButton = $('<button>').text('OK').addClass('btn btn-secondary btn-sm ml-2').css('background-color', 'orange').click(function () {
+                applyFilter();
+                dialog2.dialog('close');
+            });
+            buttonContainer.append(okButton);
+
+            // Apply filter when checkbox state changes
+            $('.filter-checkbox').on('change', applyFilter);
+
+            // Toggle state of all checkboxes when "Select All" checkbox changes
+            selectAllCheckbox.click(function () {
+                $('.filter-checkbox').not('.select-all-checkbox').prop('checked', $(this).prop('checked'));
+            });
+
+            // Open the filter dialog
+            dialog2.dialog('open');
+
+            function applyFilter() {
+                var selectedValues = $('.filter-checkbox:checked').map(function () {
+                    return $(this).val();
+                }).get();
+
+                if (selectedValues.length === 0) {
+                    column.search('').draw();
+                } else {
+                    // Use a regular expression to match exact values
+                    var regex = '^(' + selectedValues.map(function (value) {
+                        return $.fn.dataTable.util.escapeRegex(value);
+                    }).join('|') + ')$';
+
+                    column.search(regex, true, false).draw();
+                }
+            }
+        });
+
+        $("#startDate").datepicker({
+            dateFormat: 'yy-mm-dd'
+        });
+
+
+    });
+</script>
