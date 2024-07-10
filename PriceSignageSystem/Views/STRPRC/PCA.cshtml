@@ -162,6 +162,7 @@
                 ],
                 pageLength: -1,
                 data: data,
+                order: [],
                 columnDefs: [
                     { targets: [1,2,10,11,13, 17, 18], visible: false },
                     { targets: [12], orderable: false },
@@ -197,12 +198,19 @@
 
                 initComplete: function () {
                     var date = $('#startDate').val();
+
+
                     // Create the button element
                     var $button = $('<button>')
                         .addClass('custom-button')
                         .text('Export')
                         .on('click', function () {
-                            window.location.href = '/STRPRC/ExportDataTableToExcel?tab=NewExemptionInventory&date=' + date + '&filter=' + $select.val();
+
+                            var selectedDeptFilter = $('.filter-checkbox:checked').map(function () {
+                                return $(this).val();
+                            }).get();
+
+                            window.location.href = '/STRPRC/ExportDataTableToExcel?tab=NewExemptionInventory&date=' + date + '&filter=' + $select.val() + '&deptFilter=' + encodeURIComponent(selectedDeptFilter);
                         });
 
 
@@ -233,7 +241,7 @@
                         }
                         else if ($select.val() == "noCC") {
                             tableNewExemption.column(17).search("", true, false).draw();
-                            tableNewExemption.column(18).search("CO", true, false).draw();
+                            tableNewExemption.column(14).search("No CO Contract", true, false).draw();
 
                         }
                         else {

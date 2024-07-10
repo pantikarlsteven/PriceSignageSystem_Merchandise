@@ -530,11 +530,11 @@ namespace PriceSignageSystem.Controllers
         }
 
         [HttpGet]
-        public FileResult ExportDataTableToExcel(string tab, DateTime date, string filter)
+        public FileResult ExportDataTableToExcel(string tab, DateTime date, string filter, string deptFilter)
         {
             var decimalDate = ConversionHelper.ToDecimal(date);
             var dataTable = new DataTable();
-            var toExportRawData = _sTRPRCRepository.PCAToExportExemption(filter).ToList();
+            var toExportRawData = _sTRPRCRepository.PCAToExportExemption(filter, deptFilter).ToList();
 
             dataTable = ConversionHelper.ConvertListToDataTable(toExportRawData);
            

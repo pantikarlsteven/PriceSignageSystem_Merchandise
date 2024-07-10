@@ -344,11 +344,11 @@ namespace PriceSignageSystem.Models.Repository
                         IsReverted = reader["O3FLAG1"].ToString(),
                         HasInventory = reader["INV2"].ToString(),
                         IsExemp = reader["IsExemp"].ToString(),
-                        NegativeSave = reader["NegativeSave"].ToString() == "Y" ? "Negative Save" : "Zero Save",
+                        NegativeSave = reader["ExempType"].ToString(),
                         O3TYPE = reader["O3TYPE"].ToString(),
                         IBHAND = (decimal)reader["IBHAND"],
                         StoreIDs = reader["StoreIDs"].ToString().Split(',').Select(int.Parse).ToList().Count == 27 ? "All Clubs" : reader["StoreIDs"].ToString(),
-                        DateExemption = Convert.ToDateTime(reader["DateExemption"]).Date.ToString("yyMMdd"),
+                        DateExemption = !String.IsNullOrEmpty(reader["DateExemption"].ToString()) ? Convert.ToDateTime(reader["DateExemption"]).Date.ToString("yyMMdd") : "",
                         HasCoContract = reader["HasCoContract"].ToString()
                     };
 
@@ -990,7 +990,7 @@ namespace PriceSignageSystem.Models.Repository
 
         }
 
-        public List<ExportPCAExemptionDto> PCAToExportExemption(string filter)
+        public List<ExportPCAExemptionDto> PCAToExportExemption(string filter, string deptFilter)
         {
             var sp = "sp_GetExemptions";
 
@@ -1027,7 +1027,7 @@ namespace PriceSignageSystem.Models.Repository
                         SignType = (int)reader["TypeId"] == 1 ? "Regular" : "Save",
                         //Size = reader["Size"].ToString(),
                         DepartmentName = reader["DPTNAM"].ToString(),
-                        ExemptionType = reader["NegativeSave"].ToString() == "Y" ? "Negative Save" : "Zero Save",
+                        ExemptionType = reader["ExempType"].ToString(),
                         StoreCodes = reader["StoreIDs"].ToString(),
                     };
 
@@ -1042,9 +1042,17 @@ namespace PriceSignageSystem.Models.Repository
             if (filter == "all")
                 data = data.ToList();
             else if (filter == "negativeSave")
-                data = data.Where(a => a.ExemptionType == "Negative Save").ToList();
+                data = data.Where(a => a.ExemptionType.Contains("Negative Save")).ToList();
             else if (filter == "saveZero")
-                data = data.Where(a => a.ExemptionType == "Zero Save").ToList();
+                data = data.Where(a => a.ExemptionType.Contains("Zero Save")).ToList();
+            else if (filter == "noCC")
+                data = data.Where(a => a.ExemptionType.Contains("No CO Contract")).ToList();
+
+            if (!String.IsNullOrWhiteSpace(deptFilter))
+            {
+                var deptFilters = deptFilter.Split(new[] { ','}, StringSplitOptions.RemoveEmptyEntries).Select(f => f.Trim().ToUpper()).ToList();
+                data = data.Where(a => deptFilters.Any(f => a.DepartmentName.ToUpper().Contains(f))).ToList();
+            }
 
             return data;
         }

@@ -33,7 +33,7 @@ namespace PriceSignageSystem.Models.Interface
         void UpdateSingleStatus(decimal O3SKU);
         void AddInventoryPrintingLog(ReportDto model, string user);
         List<STRPRCDto> GetLatestPCAData();
-        List<ExportPCAExemptionDto> PCAToExportExemption(string filter);
+        List<ExportPCAExemptionDto> PCAToExportExemption(string filter, string deptFilter);
         List<ExportPCADto> PCAToExport();
         string GetSubClassDescription(decimal O3SKU);
     }
