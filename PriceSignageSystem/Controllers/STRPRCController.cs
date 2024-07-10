@@ -21,7 +21,7 @@ using System.Web.Mvc;
 
 namespace PriceSignageSystem.Controllers
 {
-    [CustomAuthorize]
+    //[CustomAuthorize]
     public class STRPRCController : Controller
     {
         private readonly ISTRPRCRepository _sTRPRCRepository;
