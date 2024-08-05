@@ -557,6 +557,10 @@ namespace PriceSignageSystem.Controllers
 
                         if (columnName == "Price Event Type")
                             columnName = "Correct Price Event Type (For MDSE)";
+
+                        if (columnName == "Create Co Contract")
+                            columnName = "Create CO Contract (For Master Data)";
+
                     }
 
                     cell.Value = columnName;

@@ -348,7 +348,8 @@ namespace PriceSignageSystem.Models.Repository
                         O3TYPE = reader["O3TYPE"].ToString(),
                         IBHAND = (decimal)reader["IBHAND"],
                         StoreIDs = reader["StoreIDs"].ToString().Split(',').Select(int.Parse).ToList().Count == 27 ? "All Clubs" : reader["StoreIDs"].ToString(),
-                        DateExemption = !String.IsNullOrEmpty(reader["DateExemption"].ToString()) ? Convert.ToDateTime(reader["DateExemption"]).Date.ToString("yyMMdd") : "",
+                        DateExemption = reader["DateExemption"].ToString(),
+                        //DateExemption = !String.IsNullOrEmpty(reader["DateExemption"].ToString()) ? Convert.ToDateTime(reader["DateExemption"]).Date.ToString("yyMMdd") : "",
                         HasCoContract = reader["HasCoContract"].ToString()
                     };
 
@@ -1028,6 +1029,7 @@ namespace PriceSignageSystem.Models.Repository
                         //Size = reader["Size"].ToString(),
                         DepartmentName = reader["DPTNAM"].ToString(),
                         ExemptionType = reader["ExempType"].ToString(),
+                        ExemptionDate = (decimal)reader["DateExemption"],
                         StoreCodes = reader["StoreIDs"].ToString(),
                     };
 

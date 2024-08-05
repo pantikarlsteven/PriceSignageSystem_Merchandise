@@ -22,9 +22,10 @@ namespace PriceSignageSystem.Models.Dto
         public string SignType { get; set; }
         //public string Size { get; set; }
         public string ExemptionType { get; set; }
+        public decimal ExemptionDate { get; set; }
+        public string StoreCodes { get; set; }
         public string CorrectPrice { get; set; }
         public string PriceEventType { get; set; }
-        public string StoreCodes { get; set; }
-
+        public string CreateCoContract { get; set; }
     }
 }
