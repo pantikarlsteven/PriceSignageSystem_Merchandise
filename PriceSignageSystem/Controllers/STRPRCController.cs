@@ -238,7 +238,7 @@ namespace PriceSignageSystem.Controllers
         public JsonResult GetDataBySKU(decimal id)
         {
             var dto = _sTRPRCRepository.GetDataBySKU(id);
-
+            
             dto.SizeArray = _sizeRepository.GetAllSizes().ToArray();
             dto.TypeArray = _typeRepository.GetAllTypes().ToArray();
             dto.CategoryArray = _categoryRepository.GetAllCategories().ToArray();
@@ -437,75 +437,7 @@ namespace PriceSignageSystem.Controllers
             var rawData = await _sTRPRCRepository.GetDataByStartDate(decimal.Parse(latestDate.ToString("yyMMdd")));
 
             data.LatestDate = decimal.Parse(latestDate.ToString("yyMMdd"));
-            data.WithInventoryList = rawData.Where(a => a.HasInventory == "Y" && a.IsExemp == "N").ToList();
-            //data.WithoutInventoryList = rawData.Where(a => a.HasInventory == "" || a.IsExemp == "Y").ToList();
             data.ExcemptionList = rawData.Where(a => a.HasInventory == "" || a.IsExemp == "Y").ToList();
-
-            foreach (var item in data.WithInventoryList)
-            {
-                item.TypeName = item.TypeId == 2 ? "Save"
-                                : item.TypeId == 1 ? "Regular"
-                                : "Save";
-                item.SizeName = item.SizeId == 1 ? "Whole"
-                                : item.SizeId == 2 ? "1/8"
-                                : item.SizeId == 3 ? "Jewelry"
-                                //: item.SizeId == 4 ? "Jewelry"
-                                : "Whole";
-                item.CategoryName = item.CategoryId == 1 ? "Appliance"
-                                    : item.CategoryId == 2 ? "Non-Appliance"
-                                    : "Non-Appliance";
-                item.IsPrinted = item.IsPrinted == "True" ? "Yes" : "No";
-                item.IsReverted = item.IsReverted == "Y" ? "Yes" : "No";
-            }
-
-            foreach (var item in data.ExcemptionList)
-            {
-                if (item.IsExemp == "Y")
-                {
-                    item.TypeName = item.O3EDT != 999999 ? "Save" : "Regular";
-                    item.SizeName = item.SizeId == 1 ? "Whole"
-                                    : item.SizeId == 2 ? "1/8"
-                                    : item.SizeId == 3 ? "Jewelry"
-                                    //: item.SizeId == 4 ? "Jewelry"
-                                    : "Whole";
-                    item.CategoryName = item.CategoryId == 1 ? "Appliance"
-                                        : item.CategoryId == 2 ? "Non-Appliance"
-                                        : "Non-Appliance";
-                    item.IsPrinted = item.IsPrinted == "True" ? "Yes" : "No";
-                    item.IsReverted = item.IsReverted == "Y" ? "Yes" : "No";
-                }
-                else
-                {
-                    item.TypeName = item.TypeId == 2 ? "Save"
-                                    : item.TypeId == 1 ? "Regular"
-                                    : "Save";
-                    item.SizeName = item.SizeId == 1 ? "Whole"
-                                    : item.SizeId == 2 ? "1/8"
-                                    : item.SizeId == 3 ? "Jewelry"
-                                    //: item.SizeId == 4 ? "Jewelry"
-                                    : "Whole";
-                    item.CategoryName = item.CategoryId == 1 ? "Appliance"
-                                        : item.CategoryId == 2 ? "Non-Appliance"
-                                        : "Non-Appliance";
-                    item.IsPrinted = item.IsPrinted == "True" ? "Yes" : "No";
-                    item.IsReverted = item.IsReverted == "Y" ? "Yes" : "No";
-                }
-            }
-
-            //foreach (var item in data.ExcemptionList)
-            //{
-            //    item.TypeName = item.O3EDT != 999999 ? "Save" : "Regular";
-            //    item.SizeName = item.SizeId == 1 ? "Whole"
-            //                    : item.SizeId == 2 ? "1/8"
-            //                    : item.SizeId == 3 ? "Jewelry"
-            //                    //: item.SizeId == 4 ? "Jewelry"
-            //                    : "Whole";
-            //    item.CategoryName = item.CategoryId == 1 ? "Appliance"
-            //                        : item.CategoryId == 2 ? "Non-Appliance"
-            //                        : "Non-Appliance";
-            //    item.IsPrinted = item.IsPrinted == "True" ? "Yes" : "No";
-            //    item.IsReverted = item.IsReverted == "Y" ? "Yes" : "No";
-            //}
 
             string jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(data);
 

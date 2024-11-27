@@ -91,13 +91,12 @@
                                 <th>Exemption Type</th>
                                 <th>Exemption Date</th>
                                 <th style="max-width: 200px">Store Codes</th>
-                                <th>CO Contract?</th>
                                 <th>O3TYPE</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="19" style="text-align: center;">--No Data--</td>
+                                <td colspan="18" style="text-align: center;">--No Data--</td>
                             </tr>
                         </tbody>
                     </table>
@@ -164,7 +163,7 @@
                 data: data,
                 order: [],
                 columnDefs: [
-                    { targets: [1,2,10,11,13, 17, 18], visible: false },
+                    { targets: [1,2,10,11,13,17], visible: false },
                     { targets: [12], orderable: false },
                 ],
                 columns: [
@@ -182,15 +181,13 @@
                     { data: 'CategoryName', name: 'CategoryName' },
                     { data: 'DepartmentName', name: 'DepartmentName' },
                     { data: 'IsReverted', name: 'IsReverted' },
-                    { data: 'NegativeSave', name: 'NegativeSave' },
+                    { data: 'ExempType', name: 'ExempType' },
                     { data: 'DateExemption', name: 'DateExemption' },
-                    //{ data: 'StoreIDs', name: 'StoreIDs', style:'max-width: 100px; word-wrap: break-word !important;'},
                     {
                         data: 'StoreIDs', name: 'StoreIDs', render: function (data) {
                             return '<div style="width: 200px; word-wrap: break-word;">' + data + '</div>';
                         }
                     },
-                    { data: 'HasCoContract', name: 'HasCoContract' },
                     { data: 'O3TYPE', name: 'O3TYPE' },
 
                 ],
@@ -222,9 +219,10 @@
                     var $saveZero = $('<option>').text('Zero Save').val('saveZero');
                     var $negativeSave = $('<option>').text('Negative Save').val('negativeSave');
                     var $noCC = $('<option>').text('No CO Contract').val('noCC');
+                    var $doublePromo = $('<option>').text('Double Promo').val('doublePromo');
 
                     // Append options to the select element
-                    $select.append($All, $saveZero, $negativeSave, $noCC);
+                    $select.append($All, $saveZero, $negativeSave, $noCC, $doublePromo);
 
                     $select.on('change', function () {
                         // Log the selected value to the console
@@ -240,17 +238,17 @@
 
                         }
                         else if ($select.val() == "noCC") {
-                            tableNewExemption.column(17).search("", true, false).draw();
                             tableNewExemption.column(14).search("No CO Contract", true, false).draw();
+
+                        }
+                        else if ($select.val() == "doublePromo") {
+                            tableNewExemption.column(14).search("Double Promo", true, false).draw();
 
                         }
                         else {
                             tableNewExemption.column(2).search("").draw();
                             tableNewExemption.column(1).search("").draw();
                             tableNewExemption.column(14).search("").draw();
-                            tableNewExemption.column(17).search("").draw();
-                            tableNewExemption.column(18).search("").draw();
-
 
                         }
 

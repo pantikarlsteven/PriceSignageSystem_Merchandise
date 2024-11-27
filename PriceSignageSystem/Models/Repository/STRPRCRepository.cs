@@ -317,12 +317,9 @@ namespace PriceSignageSystem.Models.Repository
                 command.CommandType = CommandType.StoredProcedure;
                 command.CommandTimeout = commandTimeoutInSeconds;
 
-                // Add parameters if required
-                // Open the connection and execute the command
                 connection.Open();
                 SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                // Process the result set
                 while (reader.Read())
                 {
                     var record = new STRPRCDto
@@ -340,33 +337,33 @@ namespace PriceSignageSystem.Models.Repository
                         TypeId = (int)reader["TypeId"],
                         SizeId = (int)reader["SizeId"],
                         CategoryId = (int)reader["CategoryId"],
-                        DepartmentName = reader["DPTNAM"].ToString(),
-                        IsReverted = reader["O3FLAG1"].ToString(),
-                        HasInventory = reader["INV2"].ToString(),
+                        DepartmentName = reader["DepartmentName"].ToString(),
+                        IsReverted = reader["IsReverted"].ToString(),
+                        HasInventory = reader["HasInventory"].ToString(),
                         IsExemp = reader["IsExemp"].ToString(),
-                        NegativeSave = reader["ExempType"].ToString(),
+                        ExempType = reader["ExempType"].ToString(),
                         O3TYPE = reader["O3TYPE"].ToString(),
                         IBHAND = (decimal)reader["IBHAND"],
+                        SizeName = reader["SizeName"].ToString(),
+                        TypeName = reader["TypeName"].ToString(),
+                        CategoryName = reader["CategoryName"].ToString(),
                         StoreIDs = reader["StoreIDs"].ToString().Split(',').Select(int.Parse).ToList().Count == 27 ? "All Clubs" : reader["StoreIDs"].ToString(),
                         DateExemption = reader["DateExemption"].ToString(),
-                        //DateExemption = !String.IsNullOrEmpty(reader["DateExemption"].ToString()) ? Convert.ToDateTime(reader["DateExemption"]).Date.ToString("yyMMdd") : "",
-                        HasCoContract = reader["HasCoContract"].ToString()
                     };
 
-                    if ((decimal)reader["O3RSDT"] == startDate)
-                    {
-                        if ((int)reader["TypeId"] == ReportConstants.Type.Regular)
-                        {
-                            record.O3SDT = (decimal)reader["O3RSDT"];
-                            record.O3EDT = (decimal)reader["O3REDT"];
-                        }
-                        else continue;
-                    }
+                    //if ((decimal)reader["O3RSDT"] == startDate)
+                    //{
+                    //    if ((int)reader["TypeId"] == ReportConstants.Type.Regular)
+                    //    {
+                    //        record.O3SDT = (decimal)reader["O3RSDT"];
+                    //        record.O3EDT = (decimal)reader["O3REDT"];
+                    //    }
+                    //    else continue;
+                    //}
 
                     data.Add(record);
                 }
 
-                // Close the reader and connection
                 reader.Close();
                 connection.Close();
             }
@@ -461,39 +458,10 @@ namespace PriceSignageSystem.Models.Repository
                         O3SCLS = (decimal)reader["O3SCLS"],
                         O3TRB3 = reader["O3TRB3"].ToString(),
                         Inv = reader["INV2"].ToString(),
-
-                        //O3LOC = (decimal)reader["O3LOC"],
-                        //O3UPC = (decimal)reader["O3UPC"],
-                        //O3VNUM = (decimal)reader["O3VNUM"],
-                        //O3TYPE = reader["O3TYPE"].ToString(),
-                        //O3POS = (decimal)reader["O3POS"],
-                        //O3POSU = (decimal)reader["O3POSU"],
-                        //O3REG = (decimal)reader["O3REG"],
-                        //O3REGU = (decimal)reader["O3REGU"],
-                        //O3ORIG = (decimal)reader["O3ORIG"],
-                        //O3ORGU = (decimal)reader["O3ORGU"],
-                        //O3EVT = (decimal)reader["O3EVT"],
-                        //O3PMMX = (decimal)reader["O3PMMX"],
-                        //O3PMTH = (decimal)reader["O3PMTH"],
-                        //O3PDQT = (decimal)reader["O3PDQT"],
-                        //O3PDPR = (decimal)reader["O3PDPR"],
-                        //O3SDT = (decimal)reader["O3SDT"],
-                        //O3EDT = (decimal)reader["O3EDT"],
-                        //O3TRB3 = reader["O3TRB3"].ToString(),
-                        //O3FGR = (decimal)reader["O3FGR"],
-                        //O3SLUM = reader["O3SLUM"].ToString(),
-                        //O3DIV = reader["O3DIV"].ToString(),
-                        //O3TUOM = reader["O3TUOM"].ToString(),
-                        //O3DATE = (decimal)reader["O3DATE"],
-                        //O3CURD = (decimal)reader["O3CURD"],
-                        //O3USER = reader["O3USER"].ToString(),
-
                         TypeName = reader["TypeName"].ToString(),
                         SizeName = reader["SizeName"].ToString(),
                         CategoryName = reader["CategoryName"].ToString()
-                        //Id = (int)reader["Id"],
-                        //FromValue = reader["FromValue"].ToString(),
-                        //ToValue = reader["IdToValue"].ToString()
+                       
                     };
 
                     records.Add(record);
